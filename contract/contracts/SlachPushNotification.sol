@@ -14,7 +14,22 @@ contract SlachPushNotification is ISlashCustomPlugin, Ownable {
     address public EPNS_COMM_ADDRESS =
         0xb3971BCef2D791bc4027BbfedFb47319A4AAaaAa;
 
-    constructor() {}
+    // This is the default title and message that will be sent to the user
+    string defaultTitle = "";
+    string defaultMessage = "";
+
+    constructor(string memory title, string memory message) {
+        defaultTitle = title;
+        defaultMessage = message;
+    }
+
+    function updateDefaultContents(string memory title, string memory message)
+        external
+        onlyOwner
+    {
+        defaultTitle = title;
+        defaultMessage = message;
+    }
 
     // MARK: - ISlashCustomPlugin
 
@@ -28,10 +43,15 @@ contract SlachPushNotification is ISlashCustomPlugin, Ownable {
         require(amount > 0, "invalid amount");
 
         IERC20(receiveToken).universalTransferFrom(msg.sender, owner(), amount);
-        sendNotification(msg.sender);
+
+        sendNotification(msg.sender, defaultTitle, defaultMessage);
     }
 
-    function sendNotification(address to) internal {
+    function sendNotification(
+        address to,
+        string memory title,
+        string memory message
+    ) internal {
         IPUSHCommInterface(EPNS_COMM_ADDRESS).sendNotification(
             0x0CF4e589e3213F482ed897B38d69Be90002325A5, // from channel
             to,
